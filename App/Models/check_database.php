@@ -11,10 +11,10 @@
 /**
  * Database connection data
  */
-$host = "localhost";
-$db_name = "mvc";
-$user = "root";
-$password = "secret";
+// $host = "localhost";
+// $db_name = "mvc";
+// $user = "root";
+// $password = "secret";
 
 /**
  * Create a connection
