@@ -51,4 +51,10 @@ class Home extends \Core\Controller
             'colours' => ['red', 'green', 'blue']
         ]);
     }
+
+    public function testAction(){
+        View::renderTemplate('Home/test.twig.html');
+    }
+
+
 }
