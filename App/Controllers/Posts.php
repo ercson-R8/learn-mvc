@@ -20,7 +20,7 @@ class Posts extends \Core\Controller
      */
     public function indexAction()
     {
-        $posts = Post::getAll();
+        $posts = Post::getAll(); // Request data from Post Model
 
         View::renderTemplate('Posts/index.html', [
             'posts' => $posts
