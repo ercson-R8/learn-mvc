@@ -22,6 +22,13 @@ class LoginController extends \Core\Controller
     {
         // Make sure an admin user is logged in for example
         // return false;
+        echo "before";
+        session_start();
+
+        if( isset($_SESSION['user_id']) ){
+            header("Location: /home/landing");
+        }
+
     }
 
     /**
@@ -61,8 +68,13 @@ class LoginController extends \Core\Controller
         
         echo"email: ".($_POST['email']) ;
         echo "password: ". ($_POST['password']);
+
+        // use the Auth Model openConn() to get PDO object 
+        $conn = Auth::openConn(); 
+
         if ($_POST['password'] == '1'){
-            header("Location: /");
+            $_SESSION['user_id'] = 1; //$results['id'];
+            header("Location: /home/index");
         }else{
             header("Location: /auth/LoginController/index");
         }

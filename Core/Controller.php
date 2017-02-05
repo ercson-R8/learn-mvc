@@ -50,7 +50,7 @@ abstract class Controller
             }
         } else {
             throw new \Exception("Method $method not found in controller " . get_class($this));
-        }
+    }
     }
 
     /**
@@ -60,6 +60,7 @@ abstract class Controller
      */
     protected function before()
     {
+        
     }
 
     /**

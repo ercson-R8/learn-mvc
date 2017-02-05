@@ -12,27 +12,6 @@ use PDO;
 class Auth extends \Core\Model
 {
 
-    /**
-     * Get all the posts as an associative array
-     *
-     * @return array
-     */
-    public static function getAll()
-    {
-    
-        // try {
-        //     //$db = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $username, $password);
-        //     $db = static::getDB();
-
-        //     $stmt = $db->query('SELECT id, title, content FROM posts ORDER BY created_at');
-        //     $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        //     return $results;
-            
-        // } catch (PDOException $e) {
-        //     echo $e->getMessage();
-        // }
-    }
 
     /**
      * openConn Connect to the database 
@@ -59,6 +38,7 @@ class Auth extends \Core\Model
      */
     public static function isEmailRegistered ($email){
         try {
+
             //$db = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $username, $password);
             $db = static::getDB();
 
@@ -79,4 +59,68 @@ class Auth extends \Core\Model
     }
 
 
+    /**
+     * validateUser         used by LoginController class  
+     *
+     * @param 	string      $email, user registered email
+     *          string      $password, user password 
+     * @return	bool        1, credentials matched otherwise 0  
+     */
+    public function validateUser ($email, $password ){
+        try {
+            $db = static::getDB();
+
+            $records = $db->prepare('SELECT id,email,password FROM users WHERE email = :email');
+            $records->bindParam(':email', $email);
+            $records->execute();
+            $results = $records->fetch(PDO::FETCH_ASSOC);
+
+
+            if(count($results) > 0 && password_verify($password, $results['password']) ){
+                $results = 1;
+            } else {
+                $results = 0;
+            }
+
+            
+            
+        } catch (PDOException $e) {
+            echo $e->getMessage();
+        }
+
+    }
+
+
+    /**
+     * registerNewUserAction add a new user in the database 
+     *
+     * @param 	    string  $email, user email 
+     *              string  $password, user password  
+     * @return      bool    1 on success.	 
+     */
+    public static function registerNewUser($email, $password){
+        $db = static::getDB();
+
+        $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
+
+        if(!empty($email) && !empty($_POST['password'])){ // empty to be removed later 
+
+            // Enter the new user in the database
+            $sql = "INSERT INTO users (email, password) VALUES (:email, :password)";
+            $stmt = $db->prepare($sql);
+
+            $stmt->bindParam(':email', $email);
+            $stmt->bindParam(':password', $hashedPassword);
+
+            /*
+             * 1 = Successfully created new user
+             * 0 = Sorry there must have been an issue creating your account
+             */
+            return ( $stmt->execute() );  
+        }
+    }
+
+
 }
+
+

@@ -19,8 +19,13 @@ class Home extends \Core\Controller
      */
     protected function before()
     {
-        //echo "(before) ";
-        //return false;
+        echo "(before) 1 ";
+        session_start();
+
+        if( isset($_SESSION['user_id']) ){
+            return true;
+        }
+        header("Location: /auth/LoginController/index");
     }
 
     /**
@@ -40,16 +45,33 @@ class Home extends \Core\Controller
      */
     public function indexAction()
     {
-        /*
-        View::render('Home/index.php', [
-            'name'    => 'Dave',
-            'colours' => ['red', 'green', 'blue']
-        ]);
-        */
-        View::renderTemplate('Home/index.twig.html', [
-            'name'    => 'Dave',
-            'colours' => ['red', 'green', 'blue']
-        ]);
+        View::renderTemplate ('Home/index.twig.html');
+
+        // View::renderTemplate('Auth/login.twig.php', [
+        //     'name'    => 'Ericson',
+        //     'colours' => ['red', 'green', 'blue']
+        // ]);
+
+    }
+
+
+
+    /**
+     * logoutAction method 
+     *
+     * @param 	
+     * @return	 
+     */
+    public function logoutAction (){
+                
+        // session_start();
+
+        session_unset();
+
+        session_destroy();
+
+        header("Location: /auth/LoginController/index");   
+
     }
 
     public function testAction(){

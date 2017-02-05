@@ -46,32 +46,14 @@ class RegisterController extends \Core\Controller
         
         $message = '';
         $email = ($_POST['email']);
-
-        // use the Auth Model openConn() to get PDO object 
-        $conn = Auth::openConn(); 
+        $password = ($_POST['password']);
 
         if( Auth::isEmailRegistered($email) > 0){
             $user_exist = true;
             $message = 'E-mail entered already registered.';
 
         }else{ // register the new user
-            $hashedPassword = password_hash($_POST['password'], PASSWORD_BCRYPT);
-
-            if(!empty($_POST['email']) && !empty($_POST['password'])){
-
-                // Enter the new user in the database
-                $sql = "INSERT INTO users (email, password) VALUES (:email, :password)";
-                $stmt = $conn->prepare($sql);
-
-                $stmt->bindParam(':email', $email);
-                $stmt->bindParam(':password', $hashedPassword);
-
-                if( $stmt->execute() ){
-                    $message = 'Successfully created new user';
-                }else{
-                    $message = 'Sorry there must have been an issue creating your account';
-                }   
-            }
+            $message = Auth::registerNewUser($email, $password);
         }
         
         echo "$message";
