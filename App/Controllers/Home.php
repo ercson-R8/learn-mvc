@@ -20,12 +20,14 @@ class Home extends \Core\Controller
     protected function before()
     {
         echo "(before) 1 ";
-        session_start();
+        // if (!session_start()){
+		//     session_start();
+	    // }
 
-        if( isset($_SESSION['user_id']) ){
-            return true;
-        }
-        header("Location: /auth/LoginController/index");
+        // if( isset($_SESSION['user_id']) ){
+        //     return true;
+        // }
+        // header("Location: /auth/LoginController/index");
     }
 
     /**
@@ -64,7 +66,9 @@ class Home extends \Core\Controller
      */
     public function logoutAction (){
                 
-        // session_start();
+        if (!session_start()){
+		    session_start();
+	    }
 
         session_unset();
 

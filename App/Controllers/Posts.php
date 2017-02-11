@@ -21,7 +21,7 @@ class Posts extends \Core\Controller
     public function indexAction()
     {
         $posts = Post::getAll(); // Request data from Post Model
-
+        var_dump($posts);
         View::renderTemplate('Posts/index.html', [
             'posts' => $posts
         ]);
