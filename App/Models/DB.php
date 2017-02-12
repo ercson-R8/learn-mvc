@@ -3,13 +3,18 @@ namespace App\Models;
 
 use PDO;
 
-/**
- * Post model
- *
- * PHP version 5.4
- */
-
 class DB extends \Core\Model{
+/* 
+ |--------------------------------------------------------------------------
+ | DB
+ |--------------------------------------------------------------------------
+ | 
+ | DB class provide shorthand functionalities for SQL SELECT, INSERT, DELETE, 
+ | UPDATE statements. 
+ | The class also provides methods to get results (stdClass), result count
+ | and 'first' methods that returns the first result of a SELECT operation
+ | Use getInstance method to create a DB object.  
+ */
 
     // a flag to check whether an object of this class has been created
     private static $_instance = null; 
@@ -50,26 +55,34 @@ class DB extends \Core\Model{
     public function query ($sql, $params = array()){
         $this->_error = false;
         
-        echo "From query method :<br/>".$sql."<br/>";
+        echo "<br/><br/><b>From query method :</b><br/>".$sql."<br/>";
         if($this->_query = $this->_pdo->prepare($sql)){
             // Prepare statement successful
             $x = 1;
             if(count($params)){
                 foreach($params as $param){
-                    echo "<br/>Param: ".$param."";
+                    echo "Param: ".$param."<br/>";
                     $this->_query->bindValue($x, $param);
                     $x++;
                 }
             }
             if ($this->_query->execute()){
+                
+                $this->_count = $this->_query->rowCount();
+
                 // if sql statement is SELECT, fetch the result otherwise do nothing
-                if (strcasecmp(explode(' ',trim($sql))[0], 'SELECT') == 0){
+                $sqlStatement = explode(' ',trim($sql))[0];
+                echo "<br/>statement is: {$sqlStatement}<br/>";
+                if (strcasecmp($sqlStatement, 'SELECT') == 0){
+                
                     $this->_results = $this->_query->fetchAll(PDO::FETCH_OBJ);
-                    $this->_count = $this->_query->rowCount();
+                
                 } 
                 
             }else{
+
                 $this->_error = true;
+
             }
         }
     } 
@@ -159,13 +172,34 @@ class DB extends \Core\Model{
      *          $where  SQL where clause
      * @return	PDO     result of the SQL statement in a PDO object
      */
-    public function delete ($table, $where){
-        
-        return $this->action('DELETE', $table, $where);
+    public function delete ($table, $whereClause = array()){
+        $where = '';
+        $whereFields = [];
+        $x = 1;
+        foreach( $whereClause as $whereSet){
+            $where .=$whereSet[0]. ' '. $whereSet[1]. ' ?';
+            if ($x < count($whereClause)){
+                $where .= ' AND ';
+            }
+            $whereFields += [$whereSet[0] => $whereSet[2]];
+            $x++;
+        }
+
+        $sql = "DELETE FROM {$table} WHERE {$where}";
+        // echo "<br/><br/>SQL: {$sql}"; 
+        $this->query($sql, $whereFields);
+        if (!$this->error()){
+            return $this;
+        }
+        return false;
     }
     
     /**
      * insert method    
+     *   $db->insert('posts', array(
+     *           'title' => 'this is title',
+     *           'content' => 'this is content'
+     *   ));
      *
      * @param		$table      table to be modified
      *              $fields     column and content combo
@@ -228,25 +262,7 @@ class DB extends \Core\Model{
             $fields += [$whereSets[0] => $whereSets[2]];
             $x++;
         }
-
-        
-
         $sql = "UPDATE {$table} SET {$set} WHERE {$where}";
-        
-        
-        //  $sql = "INSERT INTO {$table} (`"  .implode('`, `' ,$keys).   "`) VALUES ({$values})";
-        // INSERT INTO posts (`title`, `content`) VALUES ( ?,  ?)
-
-
-        // UPDATE sql: UPDATE posts SET (`column1`, `column2`) column1 = ? , column2 = ?  
-        // WHERE (`some_column`) some_column = ? 
-
-        // column1 = ? , column2 = ? 
-        // UPDATE sql: UPDATE posts SET column1 = ? , column2 = ? 
-        //                                 WHERE some_column1 = ? 
-        // ("UPDATE table SET name=? WHERE id=?");
-        echo "UPDATE sql: ".$sql."<br/>";
-        // $fields = $setClause + $whereClause;
 
         echo "Fields: ";
         print_r($fields); 
@@ -255,11 +271,57 @@ class DB extends \Core\Model{
             return $this;
         }
 
-        return true;
+        return false;
     }
 
+    /**
+     * select method 
+     *
+     * @param		
+     * @return	 	
+     */
+    public function select ($fields = array(), $table = array(),  $whereClause = array ()){
+        // SELECT posts.id, posts.title, users.id, users.email 
+        // FROM posts, users 
+        // WHERE posts.id = 1 AND users.id = 1
+        $fieldSet = '';
+        $x = 1;
+        foreach ($fields as $f){
+            $fieldSet .= $f;
+            if ($x < count($fields)){
+                $fieldSet .= ', ';
+            }
+            $x++;
+        }
+        $tableSet = '';
+        $x = 1;
+        foreach ($table as $t){
+            $tableSet .= $t;
+            if ($x < count($table)){
+                $tableSet .= ', ';
+            }
+            $x++;
+        }
+        $where = '';
+        $whereFields = [];
+        $x = 1;
+        foreach( $whereClause as $whereSet){
+            $where .=$whereSet[0]. ' '. $whereSet[1]. ' ?';
+            if ($x < count($whereClause)){
+                $where .= ' AND ';
+            }
+            $whereFields += [$whereSet[0] => $whereSet[2]];
+            $x++;
+        }
 
-
+        $sql = "SELECT {$fieldSet} FROM {$tableSet} WHERE {$where}";
+        // echo "<br/><br/>SQL: {$sql}"; 
+        $this->query($sql, $whereFields);
+        if (!$this->error()){
+            return $this;
+        }
+        return false;
+    }
 }
 
 
@@ -322,7 +384,26 @@ class DB extends \Core\Model{
             }
             $x++;   
         }
+        
 
+
+
+
+
+        
+        //  $sql = "INSERT INTO {$table} (`"  .implode('`, `' ,$keys).   "`) VALUES ({$values})";
+        // INSERT INTO posts (`title`, `content`) VALUES ( ?,  ?)
+
+
+        // UPDATE sql: UPDATE posts SET (`column1`, `column2`) column1 = ? , column2 = ?  
+        // WHERE (`some_column`) some_column = ? 
+
+        // column1 = ? , column2 = ? 
+        // UPDATE sql: UPDATE posts SET column1 = ? , column2 = ? 
+        //                                 WHERE some_column1 = ? 
+        // ("UPDATE table SET name=? WHERE id=?");
+        echo "UPDATE sql: ".$sql."<br/>";
+        // $fields = $setClause + $whereClause;
 
 
  */
